@@ -1,1 +1,1 @@
-../../../vendor/oplus/kernel/misc/mtk_oplus_gpio/oplus_gpio.c
+../../oplus/kernel/misc/mtk_oplus_gpio/oplus_gpio.c
