@@ -1,20 +1,28 @@
-#!/bin/bash
+function compile() 
+{
 
-
-export PATH="$HOME/proton-clang/bin:$PATH"
-export CC=clang
-export CLANG_TRIPLE=aarch64-linux-gnu-
-export CROSS_COMPILE=aarch64-linux-gnu-
-export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-export CONFIG_BUILD_ARM64_DT_OVERLAY=y
-
+source ~/.bashrc && source ~/.profile
+export LC_ALL=C && export USE_CCACHE=1
+ccache -M 100G
 export ARCH=arm64
-export SUBARCH=arm64
-export DTC_EXT=dtc
+export KBUILD_BUILD_HOST=niyush
+export KBUILD_BUILD_USER="maurya"
+git clone --depth=1 https://github.com/sarthakroy2002/android_prebuilts_clang_host_linux-x86_clang-6443078 clang
+git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 los-4.9-64
+git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 los-4.9-32
 
-if [ ! -d "out" ]; then
-	mkdir out
-fi
+[ -d "out" ] && rm -rf out || mkdir -p out
 
-make ARCH=arm64 O=out CC=clang titan_defconfig
-make ARCH=arm64 O=out CC=clang -j$(nproc) 2>&1 | tee kernel_log.txt
+make O=out ARCH=arm64 titan_defconfig
+
+PATH="${PWD}/clang/bin:${PATH}:${PWD}/los-4.9-32/bin:${PATH}:${PWD}/los-4.9-64/bin:${PATH}" \
+make -j$(nproc --all) O=out \
+                      ARCH=arm64 \
+                      CC="clang" \
+                      CLANG_TRIPLE=aarch64-linux-gnu- \
+                      CROSS_COMPILE="${PWD}/los-4.9-64/bin/aarch64-linux-android-" \
+                      CROSS_COMPILE_ARM32="${PWD}/los-4.9-32/bin/arm-linux-androideabi-" \
+                      CONFIG_NO_ERROR_ON_MISMATCH=y
+}
+
+compile
